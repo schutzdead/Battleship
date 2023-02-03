@@ -7,11 +7,11 @@ export const board = () => {
         for(let i=0;i<100;i++){
         let square = document.createElement('div');
         container.appendChild(square)
-        square.classList.add('square')
+        square.classList.add(`square${i+1}`)
         square.style.width = `calc(100%/${container})`
-        }
     }
+}
 
-    generateBoard(gameBoardPlayer)
-    generateBoard(gameBoardIA)
+generateBoard(gameBoardPlayer)
+generateBoard(gameBoardIA)
 }

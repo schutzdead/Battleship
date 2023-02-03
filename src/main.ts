@@ -1,127 +1,108 @@
 import './style.css'
 import { board } from './board'
+import './factoryFunction'
+import './boardInteraction'
+import { DOMInteractions} from './boardInteraction';
+
+
+var isUnclickable = true;
+
+//creation of the each gameboard
 board();
 
-export const ship = (size:number, boat:number[]=[0,0], impacted:number=0, isSunk:boolean=false) => {
+//generate boat for each player
+var playerBoat = DOMInteractions().createBoats();
+var IABoat = DOMInteractions().createBoats();
 
-  function hit () {
-    //code 
-    impacted ++
-  }
+const start = document.querySelector('.start') as HTMLElement;
+const reload = document.querySelector('.reload') as HTMLElement;
+const gameBoardPlayer = document.querySelector('.gameBoardPlayer') as HTMLElement
+const gameBoardIA = document.querySelector('.gameBoardIA') as HTMLElement
 
-  function isOut (ship:boolean){
-    if(impacted === size){
-      ship === true
-    }
-  }
-
-  return {
-    size,
-    impacted,
-    isSunk,
-    hit,
-    isOut,
-    boat
-    }
+function whichButton (startP:string, reloadP:string) {
+    start.style.display = startP
+    reload.style.display = reloadP
 }
 
-const firstShip = ship(4)
+reload.addEventListener('click', () => {
+    isUnclickable = true;
+    gameBoardPlayer.innerHTML = "";
+    gameBoardIA.innerHTML = "";
+    board();
+    playerBoat = DOMInteractions().createBoats();
+    IABoat = DOMInteractions().createBoats();
+    whichButton('block', 'none')
+})
 
+start.addEventListener('click', () => {
+    isUnclickable = false;
+    DOMInteractions().animationCreateBoat('.gameBoardPlayer>',playerBoat, 'boatSquare')
+    DOMInteractions().animationCreateBoat('.gameBoardIA>',IABoat, 'IABoatSquare')
+    whichButton('none', 'block')
+    toBeClickable();
+})
 
-export const gameBoard = () => {
-  
-  let hitPosition:number[] = [];
-  let sunkPosition:number[] = [];
-
-  function random10(shipSize:number){ //generate alea number between 1-10 less size of boat (to stay in range of the map)
-    let random = Math.floor(Math.random() * ((10-shipSize) - 1) + 1); 
-    let [x,y]: number[] = [random, random];
-    let isVertical:boolean = false;
-    if(Math.random()>0.49) isVertical = true;
-    return {firstPos : [x,y], orientation:isVertical}
-  }
-
-  function firstBoatSquare (firstPos:number[], boat:number[]) { //first alea position of the boat
-    boat = [firstPos[0] + ((firstPos[1]-1)*10)]
-    return boat
-  }
-
-  function lastBoatsquare (firstPos:number[], isVertical:boolean, shipSize:number, boat:number[]){ //last alea position of the boat
-    let tooCloseVertical = firstPos[1]+shipSize
-    let tooCloseHorizontal = firstPos[0]+shipSize
-    for(let i=1; i<shipSize; i++){
-      if (isVertical) {
-        if(tooCloseVertical>10) {
-          firstPos[1]-=1
-        } else {
-          firstPos[1]+=1
+const sunOrNot = (whichBoat:any, squareTarget:number, currentSquare:any) => {
+    for(let boat of whichBoat){
+        for(let pos of boat.boat){
+            if(squareTarget===pos) {
+                console.log(pos);
+                if(currentSquare.className !== `square${pos} sunk`) boat.impacted += 1
+                if(boat.impacted == boat.size) boat.isSunk = true
+                currentSquare.classList.add('sunk')
+            }
         }
-      } else {
-        if(tooCloseHorizontal>10) {
-          firstPos[0]-=1
-        } else {
-          firstPos[0]+=1
-        }
-      }
-    }
-    boat.push(firstPos[0] + ((firstPos[1]-1)*10))
-    return boat.sort((first,last) => first-last)
-  } 
-  
-  function animationPosition (boat:number[]) {
-    //animation which make color on the pos
-  }
-
-  function receiveAttack (target:number, boat:number[]) {
-    //target the square on the mouse like boat position
-    if(target>=boat[0] && target<=boat[1]) {
-      hitPosition.push(target)
-      return true
-    } else {
-      sunkPosition.push(target)
-      return false
-    }
-    //animation for true/false > send sunk ! or not
-  }
-
-  function endGame (shipIsSunk:boolean[]) {
-    for(let eachShip of shipIsSunk){
-      if(eachShip === false) return 'Le jeu continue'
-    }
-    return 'Fin du jeu'
-  }
-  
-  return {
-    random10,
-    lastBoatsquare,
-    firstBoatSquare,
-    animationPosition,
-    receiveAttack,
-    endGame
-  }
+    }   
+    if(currentSquare.className !== `square${squareTarget} boatSquare sunk` &&
+       currentSquare.className !== `square${squareTarget} IABoatSquare sunk`
+    ) currentSquare.classList.add('noHit')
 }
 
-export const players = () => {
-  
-  function shoot (targetSquare:number, tries:number[]) {
-    let cannonball:number = targetSquare
-    for(let eachTry of tries){
-      if(eachTry == cannonball) return 'Already hit'
-    }
-    tries.push(cannonball)
-    return 'Nice shoot' //animation on plate
-  }
-  
-  const IA = () => {
-    let tries:number[] = []
+const IAsunkOrNot = (square:any) =>{
+    let squareNumber = parseInt(square.className.slice(6,8)); 
+    sunOrNot(IABoat, squareNumber, square)
+}
+
+const aleaShootIA = () => {
+    let end:number = 0
+    if(end>=99) return
     let random:number = Math.floor(Math.random() * ((100) - 1) + 1); 
-    shoot(random, tries);
-  }
+    let playerSquare = document.querySelector(`.gameBoardPlayer>.square${random}`) as HTMLElement
+    console.log(playerSquare.className);
+    if(playerSquare.className !== `square${random}` && 
+       playerSquare.className !== `square${random} boatSquare`) {
+        aleaShootIA()
+        return
+    } else { 
+        console.log(random);
+        sunOrNot(playerBoat, random, playerSquare)
+        end += 1
+    }
+}
 
-  const playerOne= () => {
-    let tries:number[] = []
-    //add eventlistener
-  }
+function playerOrIABoat (whoLose:number, whichBoat:any, endText:string) {
+    for(let eachBoat of whichBoat){
+        if(eachBoat.isSunk) whoLose += 1       
+    }    
+    if (whoLose === 4) {
+        console.log(endText);
+        isUnclickable = true;
+    }
+}
 
-  return {shoot, IA, playerOne}
+const toBeClickable = () => {
+    var IASquares = document.querySelectorAll('.gameBoardIA>div')
+    IASquares.forEach(square => square.addEventListener('click', () => {    
+        if(isUnclickable) return 
+        let currentSquareNumber = square.className.slice(6,8)
+        if(square.className !== `square${currentSquareNumber}` && 
+        square.className !== `square${currentSquareNumber}IABoatSquare` &&
+        square.className !== `square${currentSquareNumber} IABoatSquare`) return
+        
+        IAsunkOrNot(square)
+        aleaShootIA()
+        playerOrIABoat(0, IABoat, 'Quel merguez ce pc')
+        playerOrIABoat(0, playerBoat, 'Tu as perdu salaud')
+        console.table(playerBoat)
+    }));
 }

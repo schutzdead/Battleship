@@ -29,7 +29,7 @@ h1{
     flex-wrap: wrap;
 }
 
-.square{
+.gameBoardIA>div, .gameBoardPlayer>div{
     border:1px solid rgb(158, 158, 158);
     box-sizing: border-box;
     height:50px;
@@ -56,7 +56,35 @@ button{
     box-shadow: 0 0 4px black;
 }
 
+.reload {
+    display: none;
+}
+
 button:hover{
     transform:scale(1.1);
     transition: transform 0.1s;
 } 
+
+.container>div>.boatSquare {
+    background-color: purple;
+    border-color: purple
+}
+
+.container>div>.IABoatSquare{
+    background-color: white;
+}
+
+.gameBoardIA>.square {
+    cursor: pointer;
+}
+
+.container>div>.sunk {
+    background-color: red;
+    border-color: red;
+}
+
+.container>div>.noHit {
+    background-color: grey;
+    border-color: grey;
+}
+
